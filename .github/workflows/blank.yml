@@ -36,13 +36,6 @@ jobs:
         
     - name: Download boot or recovery img with retry
       run: |
-        # 设置最大重试次数
-        MAX_RETRIES=3
-        RETRY_DELAY=10  # 设置重试等待时间（秒）
-        # 使用 wget 进行下载，并启用重试机制
-        # 使用循环来实现重试逻辑
-        for i in $(seq 1 $MAX_RETRIES); do
-          echo "Download attempt $i of $MAX_RETRIES..."
         #aria2下载程序 
         aria2c "${{ github.event.inputs.IMG_URL }}"
           ls
