@@ -15,11 +15,12 @@ jobs:
     
     steps:
     - name: Check Out
-      uses: actions/checkout@main
+      uses: actions/checkout@v4
       
     - name: Prepare the environment
       run: |
         sudo apt update
+        sudo apt -y install python3 python3-pip cpio wget aria2
         sudo apt -y install python python3 python-pip python3-pip cpio wget
         pip3 install twrpdtgen
         mkdir dt
@@ -41,7 +42,7 @@ jobs:
         files: |
           ./DeviceTree.zip
         name: TWRP_Device_Tree-${{ github.run_id }}
-        tag_name: ${{ github.run_id }}
+        tag_name: build-${{ github.run_id }}
         body: DeviceTree for twrp
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
