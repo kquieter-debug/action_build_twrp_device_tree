@@ -10,8 +10,10 @@ on:
 
 jobs:
   build:
+    timeout-minutes: 30 #超时设置
     if: github.event.repository.owner.id == github.event.sender.id
     runs-on: ubuntu-latest
+   
     
     steps:
     - name: Check Out
