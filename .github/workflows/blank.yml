@@ -10,10 +10,8 @@ on:
 
 jobs:
   build:
-    timeout-minutes: 30 #超时设置
     if: github.event.repository.owner.id == github.event.sender.id
-    runs-on: ubuntu-latest
-   
+    runs-on: ubuntu-24.04
     
     steps:
     - name: Check Out
@@ -22,36 +20,15 @@ jobs:
     - name: Prepare the environment
       run: |
         sudo apt update
-        sudo apt -y install software-properties-common # 确保add-apt-repository可用
-        sudo add-apt-repository universe -y # 添加universe仓库
-        sudo apt update
-        # 安装Python3和相关工具
-        sudo apt -y install python3 python3-pip python3-dev cpio wget aria2
-        # 创建python指向python3的符号链接
-        sudo ln -sf /usr/bin/python3 /usr/bin/python
-        # 验证安装
-        python --version
-        pip3 --version
+        sudo apt -y install python3 python3-pip cpio wget
+        pip3 install twrpdtgen
         mkdir dt
-        
-    - name: Download boot or recovery img with retry
+      
+    - name: Download boot or recovery img
       run: |
-        #aria2下载程序 
         aria2c "${{ github.event.inputs.IMG_URL }}"
-          ls
-        # 检查文件是否下载成功并有效
-        if [ ! -f "vendor_boot.img" ]; then
-        echo "Error: Downloaded file does not exist."
-        exit 1
-        fi
-        FILE_SIZE=$(stat -c%s "vendor_boot.img")
-        if [ "$FILE_SIZE" -lt 10000000 ]; then  # 假设文件应大于10MB
-        echo "Error: Downloaded file seems too small ($FILE_SIZE bytes). Might be an error page."
-        exit 1
-        fi
-        echo "Download completed successfully. File size: $FILE_SIZE bytes"
-        ls -la vendor_boot.img
-
+        ls
+      
     - name: Start build
       run: |
         python3 -m twrpdtgen -o dt/ *.img
@@ -64,7 +41,7 @@ jobs:
         files: |
           ./DeviceTree.zip
         name: TWRP_Device_Tree-${{ github.run_id }}
-        tag_name: build-${{ github.run_id }}
+        tag_name: ${{ github.run_id }}
         body: DeviceTree for twrp
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
