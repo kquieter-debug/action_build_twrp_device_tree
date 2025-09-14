@@ -22,9 +22,16 @@ jobs:
     - name: Prepare the environment
       run: |
         sudo apt update
-        sudo apt -y install python3 python3-pip cpio wget aria2
-        sudo apt -y install python python3 python-pip python3-pip cpio wget
-        pip3 install twrpdtgen
+        sudo apt -y install software-properties-common # 确保add-apt-repository可用
+        sudo add-apt-repository universe -y # 添加universe仓库
+        sudo apt update
+        # 安装Python3和相关工具
+        sudo apt -y install python3 python3-pip python3-dev cpio wget aria2
+        # 创建python指向python3的符号链接
+        sudo ln -sf /usr/bin/python3 /usr/bin/python
+        # 验证安装
+        python --version
+        pip3 --version
         mkdir dt
       
     - name: Download boot or recovery img
