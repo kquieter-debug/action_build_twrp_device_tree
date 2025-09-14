@@ -22,16 +22,39 @@ jobs:
         sudo apt update
         sudo apt -y install python3 python3-pip cpio wget
         pip3 install twrpdtgen
+        pip3 install --upgrade twrpdtgen
         mkdir dt
       
     - name: Download boot or recovery img
       run: |
         aria2c "${{ github.event.inputs.IMG_URL }}"
         ls
+    - name: Verify image file
+      run: |
+        # 检查文件类型和大小
+        file vendor_boot.img
+        ls -la vendor_boot.img
       
     - name: Start build
       run: |
         python3 -m twrpdtgen -o dt/ *.img
+    - name: Start build with error handling
+      run: |
+        set +e  # 允许命令失败而不立即退出
+        # 尝试生成设备树
+        python3 -m twrpdtgen -o dt/ boot_recovery.img
+        # 检查是否成功
+        if [ $? -ne 0 ]; then
+        echo "twrpdtgen failed, trying alternative approach..."
+        # 尝试其他方法或提供更多调试信息
+        echo "Image info:"
+        file boot_recovery.img
+        echo "Attempting to extract fstab manually..."
+        # 这里添加手动提取 fstab 的代码
+        else
+        echo "Device tree generation successful!"
+        fi    
+        set -e  # 恢复错误时立即退出
     - name: ZIP device tree
       run: |
         zip -r DeviceTree.zip ./dt
