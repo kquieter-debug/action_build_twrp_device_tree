@@ -35,20 +35,17 @@ jobs:
         file vendor_boot.img
         ls -la vendor_boot.img
       
-    - name: Start build
-      run: |
-        python3 -m twrpdtgen -o dt/ *.img
     - name: Start build with error handling
       run: |
         set +e  # 允许命令失败而不立即退出
         # 尝试生成设备树
-        python3 -m twrpdtgen -o dt/ boot_recovery.img
+        python3 -m twrpdtgen -o dt/ vendor_boot.img
         # 检查是否成功
         if [ $? -ne 0 ]; then
         echo "twrpdtgen failed, trying alternative approach..."
         # 尝试其他方法或提供更多调试信息
         echo "Image info:"
-        file boot_recovery.img
+        file vendor_boot.img
         echo "Attempting to extract fstab manually..."
         # 这里添加手动提取 fstab 的代码
         else
