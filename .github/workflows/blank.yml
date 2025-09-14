@@ -33,11 +33,48 @@ jobs:
         python --version
         pip3 --version
         mkdir dt
-      
-    - name: Download boot or recovery img
+        
+    - name: Download boot or recovery img with retry
       run: |
-        aria2c "${{ github.event.inputs.IMG_URL }}"
-        ls
+        # 设置最大重试次数
+        MAX_RETRIES=3
+        RETRY_DELAY=10  # 设置重试等待时间（秒）
+         # 使用 wget 进行下载，并启用重试机制
+        # 使用循环来实现重试逻辑
+        for i in $(seq 1 $MAX_RETRIES); do
+          echo "Download attempt $i of $MAX_RETRIES..."
+        # 使用 wget 尝试下载
+        if wget --timeout=30 --tries=1 -O vendor_boot.img "${{ github.event.inputs.IMG_URL }}"; then
+        echo "Download successful on attempt $i!"
+        break
+        else
+        echo "Download attempt $i failed."
+        if [ $i -eq $MAX_RETRIES ]; then
+          echo "All $MAX_RETRIES download attempts failed. Exiting."
+          exit 1
+        fi
+        echo "Waiting $RETRY_DELAY seconds before next attempt..."
+        sleep $RETRY_DETAY
+        fi
+        done
+
+        # 检查文件是否下载成功并有效
+        if [ ! -f "vendor_boot.img" ]; then
+        echo "Error: Downloaded file does not exist."
+        exit 1
+        fi
+        FILE_SIZE=$(stat -c%s "vendor_boot.img")
+        if [ "$FILE_SIZE" -lt 10000000 ]; then  # 假设文件应大于10MB
+        echo "Error: Downloaded file seems too small ($FILE_SIZE bytes). Might be an error page."
+        exit 1
+        fi
+        echo "Download completed successfully. File size: $FILE_SIZE bytes"
+        ls -la vendor_boot.img
+   #原先的下载程序 
+   # - name: Download boot or recovery img
+    #  run: |
+     #   aria2c "${{ github.event.inputs.IMG_URL }}"
+      #  ls
       
     - name: Start build
       run: |
@@ -46,7 +83,7 @@ jobs:
       run: |
         zip -r DeviceTree.zip ./dt
     - name: Upload to Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v4
       with:
         files: |
           ./DeviceTree.zip
